@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require "smservice/version"
 
 Gem::Specification.new do |s|
-  s.name          = "SMService"
+  s.name          = "smservice"
   s.version       = SMService::VERSION
   s.authors       = ["Andrius Kairiukstis"]
   s.email         = ["k@andrius.mobi"]
