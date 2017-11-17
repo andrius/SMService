@@ -1,5 +1,8 @@
-require "timeout"
-require "smservice/version"
+require 'timeout'
+require 'logger'
+require 'msgpack'
+require 'ffi-rzmq'
+require 'smservice/version'
 
 module SMService
   LOGGER = Logger.new(STDERR)
