@@ -1,5 +1,5 @@
 require "bundler/setup"
-require "smservice"
+require "SMService"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
