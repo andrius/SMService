@@ -30,7 +30,7 @@ Gem::Specification.new do |s|
   s.executables = []
   s.require_paths = ["lib"]
  
-  s.add_runtime_dependency "logger"
+  s.add_runtime_dependency "logger", "~> 1.2"
   s.add_runtime_dependency "msgpack", "~> 1.1"
   s.add_runtime_dependency "ffi-rzmq", "~> 2.0"
 
