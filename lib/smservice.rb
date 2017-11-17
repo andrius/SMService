@@ -1,5 +1,5 @@
 require "timeout"
-require "SMService/version"
+require "smservice/version"
 
 module SMService
   LOGGER = Logger.new(STDERR)
