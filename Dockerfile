@@ -5,6 +5,7 @@ MAINTAINER Andrius Kairiukstis <k@andrius.mobi>
 RUN apk update \
 \
 && apk add \
+     bash \
      build-base \
      git \
      libxml2-dev \
