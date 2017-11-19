@@ -1,0 +1,15 @@
+version: '3'
+
+networks:
+  middleware:
+    external:
+      name: middleware_default
+
+services:
+  rubygems:
+    build: .
+    container_name: rubygems
+    volumes:
+      - ./:/app
+    networks:
+      - middleware

@@ -1,16 +1,30 @@
 #!/usr/bin/env ruby
 
+require 'rubygems'
+require 'pry'
 require 'bundler'
 Bundler.setup
 Bundler.require
 require 'smservice'
+require_relative '../examples/dummy'
 
-# You can add fixtures and/or initialization code here to make experimenting
-# with your gem easier. You can also use a different console, if you like.
+class SMService::Test
+  include SMService
 
-# (If you use this, don't forget to add pry to your Gemfile!)
-# require "pry"
-# Pry.start
+  def initialize
+    super name: 'test_ruby', actions: 'test'
+  end
 
-require "irb"
-IRB.start(__FILE__)
+  def action_test(headers, message)
+    LOGGER.info "#{self.class} - Processing action 'test'. Headers: #{headers.inspect}, message: #{message.inspect}"
+  end
+end
+
+dummy = SMService::Dummy.new
+dummy.start!
+
+test = SMService::Test.new
+test.start!
+
+# dummy.execute(action: 'test', message: {my_request: 'ping', my_data: 'add whatever data needed'})
+binding.pry

@@ -20,8 +20,9 @@ RUN apk update \
      pcre \
      zlib \
      tzdata \
-     mc \
+     tmux \
      vim \
+     mc \
 \
 && cp -R /usr/share/zoneinfo/Europe/Amsterdam /etc/localtime \
 && echo 'Europe/Amsterdam' > /etc/timezone \
