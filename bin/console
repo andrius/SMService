@@ -8,7 +8,7 @@ Bundler.require
 require 'smservice'
 require_relative '../examples/dummy'
 
-class SMService::Test
+class SMService::TestCase
   include SMService
 
   def initialize
@@ -17,14 +17,57 @@ class SMService::Test
 
   def action_test(headers, message)
     LOGGER.info "#{self.class} - Processing action 'test'. Headers: #{headers.inspect}, message: #{message.inspect}"
+
+    # triggering 'someaction' as part of test plan
+    @tc_reply_to = headers['reply_to']       # where TC shall report-to at the end
+    message[:parent_action_headers] = headers # sending also parameters from caller
+    execute action: 'someaction', message: message
+
+    if headers['reply_to']
+      # sending reply back
+      LOGGER.info "#{self.class} - Action 'test' sending reply"
+
+      execute action: 'REPLY',
+              reply_to: headers['reply_to'],
+              message:  {status: 'OK', more_data: ['...']}
+
+      LOGGER.info "#{self.class} - Action 'test' reply sent"
+    end
+
+    LOGGER.info "#{self.class} - Terminating action 'test'"
+  end
+
+  def action_reply(headers, message)
+    LOGGER.info "#{self.class} - Processing action 'reply'. Headers: #{headers.inspect}, message: #{message.inspect}"
+
+    # ... if conditions and validations to ensure that it is reply for this TC, by searching UUID etc etc, and by the end:
+    #
+    LOGGER.info "#{self.class} - Forwarding collected TC data to the caller, which is #{@tc_reply_to}"
+    execute action: 'REPLY',
+            reply_to: @tc_reply_to,
+            message: message
   end
 end
+
+class SMService::API
+  include SMService
+
+  def initialize
+    super name: 'api'
+  end
+end
+
 
 dummy = SMService::Dummy.new
 dummy.start!
 
-test = SMService::Test.new
-test.start!
+tc = SMService::TestCase.new
+tc.start!
 
-# dummy.execute(action: 'test', message: {my_request: 'ping', my_data: 'add whatever data needed'})
+api = SMService::API.new
+api.start!
+
+sleep 3
+api.execute(action: 'test', message: {my_request: 'ping', my_data: 'add whatever data needed'})
+
 binding.pry

@@ -126,12 +126,16 @@ module SMService
     LOGGER.info "#{self.class} - Processing action 'update'. Headers: #{headers.inspect}, message: #{message.inspect}"
   end
 
+  def action_reply(headers, message)
+    LOGGER.info "#{self.class} - Processing action 'reply'. Headers: #{headers.inspect}, message: #{message.inspect}"
+  end
+
   # Requesting another service, registered at SM to execute given action, example:
   # execute(action: 'create_customer_portal', message: {my_request: 'should create a customer', my_data: 'add whatever data needed'})
   #
-  def execute(action:, message: nil)
+  def execute(action:, reply_to: nil, message: nil)
     LOGGER.info "#{self.class} - SM execute request. Action: #{action.inspect}, message: #{message.inspect}"
-    action = {service: action, reply_to: @service_name}.to_msgpack
+    action = {service: action, reply_to: (reply_to || @service_name)}.to_msgpack
     message = message.to_msgpack
     @socket_out.send_strings [action, message]
   end
