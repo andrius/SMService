@@ -1,8 +1,8 @@
+require 'smservice/version'
 require 'timeout'
 require 'logger'
 require 'msgpack'
 require 'ffi-rzmq'
-require 'smservice/version'
 
 module SMService
   Thread.abort_on_exception = true
@@ -18,6 +18,8 @@ module SMService
 
   attr_accessor :socket_in, :socket_out
   attr_reader :service_name
+
+  #include Celluloid
 
   # When registering node, following parameters is mandatory:
   #
@@ -42,7 +44,10 @@ module SMService
     @service_name = name
     @actions = [%w(ping), actions].flatten.sort.uniq
 
-    context = ZMQ::Context.new
+    @mutex_in = Mutex.new
+    @mutex_out = Mutex.new
+
+    context = ZMQ::Context.new(1)
     @socket_in = context.socket ZMQ::DEALER
     @socket_out = context.socket ZMQ::DEALER
 
@@ -59,6 +64,11 @@ module SMService
     register
     keep_alive!
     poller!
+    @started = true
+  end
+
+  def started?
+    @started
   end
 
   def poller!
@@ -94,8 +104,9 @@ module SMService
   end
 
   def keep_alive!(wait_time: KEEPALIVE_WAIT_TIME)
+    LOGGER.info "#{self.class} - Starting registration update loop with periodic interval #{wait_time} sec"
+
     Thread.start do
-      LOGGER.info "#{self.class} - Starting registration update loop with periodic interval #{wait_time} sec"
       loop do
         break unless registered?
         sleep wait_time
@@ -115,7 +126,7 @@ module SMService
       LOGGER.info "#{self.class} - Action: REGISTER (successful), headers: #{headers.inspect}, message: #{message.inspect}"
     else
       LOGGER.info "#{self.class} - Action: REGISTER (failure), headers: #{headers.inspect}, message: #{message.inspect}"
-    end   
+    end
   end
 
   def action_ping(headers, message)
@@ -137,7 +148,9 @@ module SMService
     LOGGER.info "#{self.class} - SM execute request. Action: #{action.inspect}, message: #{message.inspect}"
     action = {service: action, reply_to: (reply_to || @service_name)}.to_msgpack
     message = message.to_msgpack
-    @socket_out.send_strings [action, message]
+    @mutex_out.synchronize do
+      @socket_out.send_strings [action, message]
+    end
   end
 
 private
@@ -153,11 +166,14 @@ private
     LOGGER.info "#{self.class} - SM request. Action: #{action.inspect}, message: #{message.inspect}"
     action = {action: action}.to_msgpack
     message = message.to_msgpack
-    @socket_in.send_strings [action, message]
+    @mutex_in.synchronize do
+      @socket_in.send_strings [action, message]
+    end
   end
 
   def pull
-    @socket_in.recv_strings( response = [] )
+    response = []
+    @socket_in.recv_strings(response)
 
     headers, message = response
     headers = MessagePack.unpack(headers)

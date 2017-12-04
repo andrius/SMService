@@ -29,11 +29,10 @@ Gem::Specification.new do |s|
   # s.executables   = s.files.grep(%r{^exe/}) { |f| File.basename(f) }
   s.executables = []
   s.require_paths = ["lib"]
- 
+
   s.add_runtime_dependency "logger", "~> 1.2"
   s.add_runtime_dependency "msgpack", "~> 1.1"
   s.add_runtime_dependency "ffi-rzmq", "~> 2.0"
-
 
   s.add_development_dependency "bundler", "~> 1.16"
   s.add_development_dependency "pry", "~> 0.11"
